@@ -28,6 +28,7 @@ public:
     // double GetDetNX() const { return fParsedOptions["det-nx"].as<double>(); }
     // double GetDetNY() const { return fParsedOptions["det-ny"].as<double>(); }
     // double GetDetNZ() const { return fParsedOptions["det-nz"].as<double>(); }
+    std::string GetGeantPhys() const { return fParsedOptions["geant-phys"].as<std::string>(); }
     int GetGeantNPart() const { return fParsedOptions["geant-n-part"].as<int>(); }
     bool GetGeantDraw() const { return fParsedOptions.count("geant-draw"); }
 

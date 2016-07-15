@@ -1,7 +1,7 @@
 
 #include "GeantSim.h"
 #include "G4RunManager.hh"
-#include "FTFP_BERT.hh"
+#include "G4PhysListFactory.hh"
 #include "G4StepLimiterPhysics.hh"
 #include "GeantDetectorConstruction.h"
 #include "GeantDetectorConstruction.h"
@@ -18,11 +18,7 @@ namespace GeantSim {
 void Run()
 {
     std::unique_ptr<G4RunManager> runManager( new G4RunManager );
-
-    G4VModularPhysicsList* physicsList = new FTFP_BERT; // PhysicsList !!!
-    physicsList->RegisterPhysics(new G4StepLimiterPhysics());
-    runManager->SetUserInitialization(physicsList);
-
+    runManager->SetUserInitialization( G4PhysListFactory().GetReferencePhysList( gOptions->GetGeantPhys() ) );
     runManager->SetUserInitialization( new GeantDetectorConstruction() );
     runManager->SetUserAction( new GeantPrimaryGeneratorAction );
 
