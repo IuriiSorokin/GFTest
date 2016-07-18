@@ -24,7 +24,7 @@ namespace GFTest {
 namespace GenfitExt
 {
 
-void Run()
+GFTestResult Run()
 {
     // ============================================
      //                  Geometry
@@ -84,7 +84,6 @@ void Run()
 
      genfit::SharedPlanePtr plane( new genfit::DetPlane( TVector3(0,0,gOptions->GetDetZ_cm()), TVector3(1,0,0), TVector3(0,1,0) ) );
 
-
      // ============================================
      //               Extrapolation
      // ============================================
@@ -92,31 +91,30 @@ void Run()
      const Int_t kElectronPdgCode = TDatabasePDG::Instance()->GetParticle( gOptions->GetPartType().c_str() )->PdgCode();
 
      genfit::RKTrackRep trackRep(kElectronPdgCode);
-     // trackRep.setDebugLvl(1000);
      genfit::MeasuredStateOnPlane state( & trackRep );
      state.setPosMom( TVector3(gOptions->GetPartX_cm(),gOptions->GetPartY_cm(),gOptions->GetPartZ_cm()), TVector3(gOptions->GetPartPx_GeVc(),gOptions->GetPartPy_GeVc(),gOptions->GetPartPz_GeVc()) );
 
      try {
-         // at-once
          state.extrapolateToPlane( plane, false, true );
-
-         // step-by-step
-         // while( state.getPos().Z() != plane->getO().Z() ) {
-         //     std::cout << "%%%%%%%%%%%%%%%%%%%%%% EXTRAPOLATION %%%%%%%%%%%%%%%%%%%%%%% \n";
-         //     state.extrapolateToPlane( plane, true, true );
-         // }
      }
      catch (genfit::Exception & e) {
          std::cout << "Extrapolation failed. Genfit exception:" << std::endl;
          e.info();
      }
-     // std::cout << "final 5D state   " << state.getState() << std::endl;
-     // std::cout << "final momentum   " << state.getMom() << std::endl;
-     // std::cout << "cov=\n" <<  state.getCov() << std::endl;
-     // std::cout << "cov6D=\n" <<  state.get6DCov() << std::endl;
 
-     std::cout << "GENFIT momentum loss, keV        : " << ( gOptions->GetPartPMag_GeVc() - state.getMom().Mag() ) * 1e6 << std::endl;
-     std::cout << "GENFIT momentum uncertainty, keV : " << sqrt(state.getMomVar()) * 1e6 << std::endl;
+     // ============================================
+     //        Prepare and return the result
+     // ============================================
+
+     GFTestResult result("GENFIT");
+     result.Passed = (state.getPos().Z() == plane->getO().Z());
+     result.XYCov  = state.get6DCov()(0,1);
+     result.XStddev = sqrt( state.get6DCov()(0,0) );
+     result.YStddev = sqrt( state.get6DCov()(1,1) );
+     result.PLossMean  = ( gOptions->GetPartPMag_GeVc() - state.getMom().Mag() ) * 1e6;
+     result.PLossStddev = sqrt(state.getMomVar()) * 1e6;
+
+     return result;
 }
 
 } /* namespace GFTest::GenfitExt */

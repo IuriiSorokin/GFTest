@@ -4,20 +4,28 @@
 #include "TApplication.h"
 #include "Options.h"
 
+using GFTest::gOptions;
+using GFTest::GFTestResult;
+
 int main(int argc,char ** argv)
 {
-    std::unique_ptr<TApplication> rootApp;
+    gOptions->Parse( argc, argv );
 
-    if( GFTest::gOptions->GetGeantDraw() ) {
+    std::unique_ptr<TApplication> rootApp;
+    if( gOptions->GetGeantDraw() ) {
         static int rootArgc = 0;
         static char * rootArgv = nullptr;
         rootApp.reset( new TApplication("rootApp", & rootArgc, & rootArgv ) );
     }
 
-    GFTest::gOptions->Parse( argc, argv );
+    GFTestResult geantResult = GFTest::GeantSim::Run();
+    GFTestResult genfitResult = GFTest::GenfitExt::Run();
 
-    GFTest::GeantSim::Run();
-    GFTest::GenfitExt::Run();
+    std::cout << "================================================================\n";
+    GFTestResult::Compare( { geantResult, genfitResult } );
 
-    if( rootApp.get() ) rootApp->Run();
+    if( rootApp.get() ) {
+        rootApp->Run();
+    }
+
 }

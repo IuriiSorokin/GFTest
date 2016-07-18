@@ -27,7 +27,7 @@ G4VPhysicalVolume * GeantDetectorConstruction::Construct()
     // Detector plane
     G4Box * detPlaneSolid = new G4Box("detPlaneSolid", worldSize, worldSize, 1 * um );
     G4LogicalVolume * detPlaneLV = new G4LogicalVolume( detPlaneSolid, G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic"), "detPlaneLV");
-    new G4PVPlacement( 0, G4ThreeVector( 0, 0, gOptions->GetDetZ_cm() + detPlaneSolid->GetZHalfLength() ), detPlaneLV, "DetPlanePV", worldLV, false, 0, true);
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, ( gOptions->GetDetZ_cm() + detPlaneSolid->GetZHalfLength() ) * cm ), detPlaneLV, "DetPlanePV", worldLV, false, 0, true);
     fDetPlaneSD = new GeantTrackerSD( 0 );
     SetSensitiveDetector( detPlaneLV, fDetPlaneSD );
 

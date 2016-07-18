@@ -27,7 +27,7 @@ Options::Options()
             // ( "det-nz", po::value<double>()->default_value( 1 ), "detector plane normal z" )
             ( "geant-phys", po::value<std::string>()->default_value("FTFP_BERT"), "GEANT physics list" )
             ( "geant-n-part,N", po::value<int>()->default_value( 10000 ), "number of particles to shoot in GEANT" )
-            ( "geant-draw,d", po::bool_switch()->default_value( false ), "draw the GEANT histograms" )
+            ( "geant-draw,d", po::bool_switch(), "draw the GEANT histograms" )
             ( "help,h", "Print this help" )
             ;
 }

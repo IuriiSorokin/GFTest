@@ -2,11 +2,13 @@
 #ifndef GENFITEXT_H_
 #define GENFITEXT_H_
 
+#include "GFTestResult.h"
+
 namespace GFTest {
 
 namespace GenfitExt
 {
-    void Run();
+    GFTestResult Run();
 } /* namespace GFTest::GenfitExt */
 
 } /* namespace GFTest */

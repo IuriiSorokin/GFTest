@@ -11,10 +11,10 @@ namespace GFTest {
 GeantTrackerSD::GeantTrackerSD( G4int planeId )
 : G4VSensitiveDetector( Form("TrackerSD%d", planeId) )
 {
-    fPos_cm.reset( new TH2F( Form("Pos_cm_%d", planeId), Form("Pos_cm_%d", planeId), 100, -1, 1, 100, -1, 1 ) );
-    fPosX_cm.reset( new TH1F( Form("PosX_cm_%d", planeId), Form("PosX_cm_%d", planeId), 100, -1, 1 ) );
-    fPosY_cm.reset( new TH1F( Form("PosY_cm_%d", planeId), Form("PosY_cm_%d", planeId), 100, -1, 1 ) );
-    fMomLoss_keV.reset( new TH1F( Form("MomLoss_keV_%d", planeId), Form("MomLoss_keV_%d", planeId), 100, 0, 500 ) );
+    fPos_cm.reset( new TH2F( Form("Pos_cm_%d", planeId), Form("Pos_cm_%d", planeId), 500, -0.05, 0.05, 500, -0.05, 0.05 ) );
+    fPosX_cm.reset( new TH1F( Form("PosX_cm_%d", planeId), Form("PosX_cm_%d", planeId), 500, -0.05, 0.05 ) );
+    fPosY_cm.reset( new TH1F( Form("PosY_cm_%d", planeId), Form("PosY_cm_%d", planeId), 500, -0.05, 0.05 ) );
+    fMomLoss_keV.reset( new TH1F( Form("MomLoss_keV_%d", planeId), Form("MomLoss_keV_%d", planeId), 1000, 0, 5000 ) );
 }
 
 

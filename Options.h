@@ -30,7 +30,7 @@ public:
     // double GetDetNZ() const { return fParsedOptions["det-nz"].as<double>(); }
     std::string GetGeantPhys() const { return fParsedOptions["geant-phys"].as<std::string>(); }
     int GetGeantNPart() const { return fParsedOptions["geant-n-part"].as<int>(); }
-    bool GetGeantDraw() const { return fParsedOptions.count("geant-draw"); }
+    bool GetGeantDraw() const { return fParsedOptions.count("geant-draw") && fParsedOptions["geant-draw"].as<bool>() ; }
 
     double GetPartPMag_GeVc() const { return sqrt( GetPartPx_GeVc() * GetPartPx_GeVc() + GetPartPy_GeVc() * GetPartPy_GeVc() + GetPartPz_GeVc() * GetPartPz_GeVc() ); }
 
