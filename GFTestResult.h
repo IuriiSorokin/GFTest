@@ -26,6 +26,7 @@ struct GFTestResult
     boost::optional<double> XYCov;       // Covariance (not a sqrt of it); In case of GEANT it is taken from unfitted data
     boost::optional<double> PLossMean;
     boost::optional<double> PLossMP;     // Most probable
+    boost::optional<double> PLossMedi;   // Median
     boost::optional<double> PLossStddev;
 
     GFTestResult( std::string name ): Name(name) {};

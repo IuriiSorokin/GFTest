@@ -5,6 +5,7 @@
 #include "G4Step.hh"
 #include "TString.h"
 #include "Options.h"
+#include "G4VProcess.hh"
 
 namespace GFTest {
 
@@ -30,6 +31,10 @@ G4bool GeantTrackerSD::ProcessHits( G4Step * aStep, G4TouchableHistory * )
         fPosY_cm->Fill( pos.y() / cm );
         fMomLoss_keV->Fill( momLoss / keV );
     }
+
+//    std::cout << "Limit by: " << aStep->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName() << std::endl;
+//    std::cout << "Nonion  : " << aStep->GetNonIonizingEnergyDeposit() << std::endl;
+//    std::cout << "Total   : " << aStep->GetTotalEnergyDeposit() << std::endl;
 
     return true;
 }

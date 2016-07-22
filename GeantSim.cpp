@@ -4,14 +4,18 @@
 #include "G4PhysListFactory.hh"
 #include "G4StepLimiterPhysics.hh"
 #include "GeantDetectorConstruction.h"
-#include "GeantDetectorConstruction.h"
 #include "GeantPrimaryGeneratorAction.h"
+#include "GeantStepping.h"
+#include "G4PhysListFactory.hh"
 #include "TFile.h"
 #include "TCanvas.h"
 #include "TROOT.h"
 #include "Options.h"
 #include "TF1.h"
+#include "TMath.h"
 #include <memory>
+#include "FTFP_BERT.hh"
+#include "GeantCustomPhysicsList.h"
 
 namespace GFTest {
 
@@ -20,12 +24,24 @@ namespace GeantSim {
 GFTestResult Run()
 {
     std::unique_ptr<G4RunManager> runManager( new G4RunManager );
-    runManager->SetUserInitialization( G4PhysListFactory().GetReferencePhysList( gOptions->GetGeantPhys() ) );
+
+    G4VUserPhysicsList * physicsList = nullptr;
+    if( gOptions->GetGeantPhys() == "Custom" ) {
+        physicsList = new GeantCustomPhysicsList();
+    }
+    else {
+        physicsList = G4PhysListFactory().GetReferencePhysList( gOptions->GetGeantPhys() );
+    }
+
+    // physicsList->SetVerboseLevel(100000);
+
+    runManager->SetUserInitialization( physicsList );
     runManager->SetUserInitialization( new GeantDetectorConstruction() );
     runManager->SetUserAction( new GeantPrimaryGeneratorAction );
-
+    runManager->SetUserAction( new GeantStepping );
     runManager->Initialize();
-    runManager->BeamOn( gOptions->GetGeantNPart() ); // events
+
+    runManager->BeamOn( gOptions->GetGeantNPart() );
 
     // ===== Prepare the result =====
 
@@ -55,7 +71,9 @@ GFTestResult Run()
 
     result.PLossMean   = momLoss_keV->GetMean();
     result.PLossStddev = momLoss_keV->GetRMS();
-    result.Passed = momLoss_keV->GetEntries() / gOptions->GetGeantNPart();
+    result.PLossMP     = momLoss_keV->GetBinCenter( momLoss_keV->GetMaximumBin() );
+    result.PLossMedi   = GetMedian( momLoss_keV.get(), gOptions->GetGeantNPart() );
+    result.Passed      = momLoss_keV->GetEntries() / gOptions->GetGeantNPart();
 
     // ===== Store =====
 
@@ -88,6 +106,16 @@ GFTestResult Run()
     }
 
     return result;
+}
+
+
+
+Double_t GetMedian( const TH1F* h, Double_t nParticles )
+{
+    std::unique_ptr<TH1F> hc(  dynamic_cast<TH1F*>(h->GetCumulative(true, "cumulative")) );
+    Long64_t medianBin = TMath::BinarySearch<Float_t>( hc->GetNbinsX(), hc->GetArray() , 0.5 * nParticles );
+    std::cout << "MEDIAN BIN is " << medianBin << std::endl;
+    return hc->GetBinCenter( medianBin );
 }
 
 } /* namespace GFTest::GeantSim */

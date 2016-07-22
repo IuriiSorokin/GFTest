@@ -1,6 +1,5 @@
 
 #include "GeantSim.h"
-#include "GenfitExt.h"
 #include "TApplication.h"
 #include "Options.h"
 
@@ -19,10 +18,9 @@ int main(int argc,char ** argv)
     }
 
     GFTestResult geantResult = GFTest::GeantSim::Run();
-    GFTestResult genfitResult = GFTest::GenfitExt::Run();
 
     std::cout << "================================================================\n";
-    GFTestResult::Compare( { geantResult, genfitResult } );
+    GFTestResult::Compare( { geantResult } ); // simply prints geantResult
 
     if( rootApp.get() ) {
         rootApp->Run();

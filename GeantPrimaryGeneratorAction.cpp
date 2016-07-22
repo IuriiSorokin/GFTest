@@ -22,6 +22,7 @@ GeantPrimaryGeneratorAction::GeantPrimaryGeneratorAction()
 
 void GeantPrimaryGeneratorAction::GeneratePrimaries( G4Event * anEvent )
 {
+    // G4cout << " ============================ GeantPrimaryGeneratorAction::GeneratePrimaries ===============================" << G4endl;
     fParticleGun->GeneratePrimaryVertex( anEvent );
 }
 

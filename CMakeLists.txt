@@ -16,17 +16,11 @@ include_directories( ${ROOT_INCLUDE_DIRS} )
 find_package(Boost REQUIRED program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
-if(NOT DEFINED ENV{GENFIT_INSTALL})
-  error( "GENFIT_INSTALL not defined" )
-endif()
-link_directories( $ENV{GENFIT_INSTALL}/lib )
-include_directories( $ENV{GENFIT_INSTALL}/include )
-
 find_package(Geant4 REQUIRED)
 include(${Geant4_USE_FILE})
 
 file(GLOB SRCS ${PROJECT_SOURCE_DIR}/*.cpp)
 
 add_executable(gftest ${SRCS} )
-target_link_libraries(gftest ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}  ${Boost_LIBRARIES} genfit2 Geom EG)
+target_link_libraries(gftest ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}  ${Boost_LIBRARIES} Geom EG)
 

@@ -22,14 +22,11 @@ public:
     double GetPartPy_GeVc() const { return fParsedOptions["py"].as<double>(); }
     double GetPartPz_GeVc() const { return fParsedOptions["pz"].as<double>(); }
     double GetScatThick_um() const { return fParsedOptions["scat-thick"].as<double>(); }
-    // double GetDetX_cm() const { return fParsedOptions["det-x"].as<double>(); }
-    // double GetDetY_cm() const { return fParsedOptions["det-y"].as<double>(); }
+    std::string GetScatMat() const { return fParsedOptions["scat-mat"].as<std::string>(); }
     double GetDetZ_cm() const { return fParsedOptions["det-z"].as<double>(); }
-    // double GetDetNX() const { return fParsedOptions["det-nx"].as<double>(); }
-    // double GetDetNY() const { return fParsedOptions["det-ny"].as<double>(); }
-    // double GetDetNZ() const { return fParsedOptions["det-nz"].as<double>(); }
     std::string GetGeantPhys() const { return fParsedOptions["geant-phys"].as<std::string>(); }
     int GetGeantNPart() const { return fParsedOptions["geant-n-part"].as<int>(); }
+    bool GetGeantTrace() const { return fParsedOptions.count("geant-trace") && fParsedOptions["geant-trace"].as<bool>() ; }
     bool GetGeantDraw() const { return fParsedOptions.count("geant-draw") && fParsedOptions["geant-draw"].as<bool>() ; }
 
     double GetPartPMag_GeVc() const { return sqrt( GetPartPx_GeVc() * GetPartPx_GeVc() + GetPartPy_GeVc() * GetPartPy_GeVc() + GetPartPz_GeVc() * GetPartPz_GeVc() ); }

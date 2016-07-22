@@ -59,6 +59,10 @@ void GFTestResult::Compare( std::vector<GFTestResult> results, std::ostream & os
     for( const GFTestResult & result : results ) StreamOptional( result.PLossMP, f, os );
     os << "\n";
 
+    os << "PLossMedi   / keV  ";
+    for( const GFTestResult & result : results ) StreamOptional( result.PLossMedi, f, os );
+    os << "\n";
+
     os << "PLossStddev / keV  ";
     for( const GFTestResult & result : results ) StreamOptional( result.PLossStddev, f, os );
     os << "\n";

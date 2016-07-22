@@ -19,10 +19,13 @@ G4VPhysicalVolume * GeantDetectorConstruction::Construct()
 
     // Scatterer plane
     G4Box * scatPlaneSolid = new G4Box("scatPlaneSolid", worldSize, worldSize, gOptions->GetScatThick_um() * um / 2  );
-    G4Material * scatMat =  G4NistManager::Instance()->FindOrBuildMaterial("G4_Si");
-    G4cout << "Scatterer material: " << scatMat->GetName() << " Radiation length = "<< scatMat->GetRadlen() / cm << " cm"<< G4endl;
+    G4Material * scatMat =  G4NistManager::Instance()->FindOrBuildMaterial(Form("G4_%s", gOptions->GetScatMat().c_str()));
+    G4cout << "Scatterer material: " << scatMat->GetName() << " Density = " << scatMat->GetDensity() / ( g / cm3 ) << " g/cm3  Radiation length = "<< scatMat->GetRadlen() / cm << " cm"<< G4endl;
     G4LogicalVolume * scatPlaneLV = new G4LogicalVolume( scatPlaneSolid, scatMat, "scatPlaneLV");
     new G4PVPlacement( 0, G4ThreeVector(0,0,0), scatPlaneLV, "scatPlanePV", worldLV, false, 0, true);
+    GeantTrackerSD * scatPlaneSd = new GeantTrackerSD( 1 );
+    SetSensitiveDetector( scatPlaneLV, scatPlaneSd );
+
 
     // Detector plane
     G4Box * detPlaneSolid = new G4Box("detPlaneSolid", worldSize, worldSize, 1 * um );
