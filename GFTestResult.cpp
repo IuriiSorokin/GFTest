@@ -23,9 +23,9 @@ void GFTestResult::Compare( std::vector<GFTestResult> results, std::ostream & os
 {
     boost::format f("%|16g|");
 
-    os << "                   ";
-    for( const GFTestResult & result : results ) os << f % result.Name;
-    os << "\n";
+//    os << "                   ";
+//    for( const GFTestResult & result : results ) os << f % result.Name;
+//    os << "\n";
 
     os << "Passed             ";
     for( const GFTestResult & result : results ) StreamOptional( result.Passed, f, os );
@@ -57,6 +57,10 @@ void GFTestResult::Compare( std::vector<GFTestResult> results, std::ostream & os
 
     os << "PLossMP     / keV  ";
     for( const GFTestResult & result : results ) StreamOptional( result.PLossMP, f, os );
+    os << "\n";
+
+    os << "PLossMedi   / keV  ";
+    for( const GFTestResult & result : results ) StreamOptional( result.PLossMedi, f, os );
     os << "\n";
 
     os << "PLossStddev / keV  ";

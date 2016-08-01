@@ -6,8 +6,8 @@
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(gftest)
 
-list(APPEND CMAKE_CXX_FLAGS "-std=c++11")
-# list(APPEND CMAKE_CXX_FLAGS "-std=c++11  -g -O0 -ggdb ")
+# list(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+list(APPEND CMAKE_CXX_FLAGS "-std=c++11  -g -O0 -ggdb ")
 
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} )
 find_package( ROOT 5.34 REQUIRED )
@@ -27,6 +27,9 @@ include(${Geant4_USE_FILE})
 
 file(GLOB SRCS ${PROJECT_SOURCE_DIR}/*.cpp)
 
-add_executable(gftest ${SRCS} )
-target_link_libraries(gftest ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}  ${Boost_LIBRARIES} genfit2 Geom EG)
+add_executable(gftest gftest.cxx ${SRCS} )
+target_link_libraries(gftest ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}  ${Boost_LIBRARIES} genfit2 Geom EG rt ) # rt not needed here if not liking with ProcessWrapper 
+
+add_executable(gfscan gfscan.cxx ${SRCS} )
+target_link_libraries(gfscan ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}  ${Boost_LIBRARIES} genfit2 Geom EG rt )
 

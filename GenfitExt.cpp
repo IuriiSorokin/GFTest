@@ -18,6 +18,11 @@
 #include "MaterialEffects.h"
 #include "TGeoMaterialInterface.h"
 #include "Options.h"
+#include "G4NistManager.hh"
+#include "G4Material.hh"
+#include <CLHEP/Units/SystemOfUnits.h>
+#include "G4String.hh"
+
 
 namespace GFTest {
 
@@ -33,14 +38,11 @@ GFTestResult Run()
      TGeoManager::SetVerboseLevel(-1);
      std::unique_ptr<TGeoManager> geoManager( new TGeoManager("genfitGeom", "GENFIT geometry") );
 
-     genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
-
      // ===== Materials =====
 
-     TGeoElement * siliconElement = gGeoManager->GetElementTable()->FindElement("Silicon");
-     TGeoElement * vacuumElement = gGeoManager->GetElementTable()->FindElement("Vacuum");
-     assert(siliconElement);
-     assert(vacuumElement);
+     genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
+     // genfit::MaterialEffects::getInstance()->setEnergyLossBetheBloch(gOptions->GetIon());
+     // genfit::MaterialEffects::getInstance()->setEnergyLossBrems(gOptions->GetRad());
 
      Double_t mediumParameters[10];
      mediumParameters[0]=0.;//sensitive volume flag
@@ -54,12 +56,17 @@ GFTestResult Run()
      mediumParameters[8]=0.;//not defined
      mediumParameters[9]=0.;//not defined
 
-     Double_t siliconDensity_g_cm3 = 2.3290;
-     TGeoMaterial * siliconMaterial = new TGeoMaterial("siliconMaterial", siliconElement, siliconDensity_g_cm3);
-     siliconMaterial->SetRadLen( 7777 ); // this should force ROOT to recalculate the radiation and interaction length. 7777 is an arbitrary positive number.
-     std::cout << "Silicon radiation length = " << siliconMaterial->GetRadLen() << std::endl;
-     TGeoMedium * siliconMedium = new TGeoMedium("siliconMedium", gGeoManager->GetListOfMedia()->GetSize(), siliconMaterial, mediumParameters);
+     G4Material * g4scattererMaterial = G4NistManager::Instance()->FindOrBuildMaterial( Form("G4_%s", gOptions->GetScatMat().c_str())  );
+     TGeoMixture * scattererMaterial = new TGeoMixture("ScattererMaterial", g4scattererMaterial->GetNumberOfElements(), g4scattererMaterial->GetDensity() / ( CLHEP::g / CLHEP::cm3) );
+     for( size_t iElement = 0; iElement < g4scattererMaterial->GetNumberOfElements(); ++iElement ) {
+         scattererMaterial->AddElement( g4scattererMaterial->GetElement(iElement)->GetAtomicMassAmu(), g4scattererMaterial->GetElement(iElement)->GetZ(), g4scattererMaterial->GetFractionVector()[iElement] );
+     }
+     scattererMaterial->SetRadLen( 7777 ); // this should force ROOT to recalculate the radiation and interaction length. 7777 is an arbitrary positive number.
+     std::cout << "Scatterer material radiation length = " << scattererMaterial->GetRadLen() << std::endl;
+     TGeoMedium * scattererMedium = new TGeoMedium( "scattererMedium", gGeoManager->GetListOfMedia()->GetSize(), scattererMaterial, mediumParameters);
 
+     TGeoElement * vacuumElement = gGeoManager->GetElementTable()->FindElement("Vacuum");
+     assert(vacuumElement);
      Double_t vacuumDensity_g_cm3 = 1e-27;
      TGeoMaterial * vacuumMaterial = new TGeoMaterial("vacuumMaterial", vacuumElement, vacuumDensity_g_cm3);
      vacuumMaterial->SetRadLen( 7777 ); // this should force ROOT to recalculate the radiation and interaction length. 7777 is an arbitrary positive number.
@@ -71,8 +78,8 @@ GFTestResult Run()
      TGeoVolume * topVolume = gGeoManager->MakeBox("TopVolume", vacuumMedium, worldSize, worldSize, worldSize);
      gGeoManager->SetTopVolume(topVolume);
 
-     TGeoVolume * siliconPlane = gGeoManager->MakeBox("SiliconPlane", siliconMedium, worldSize, worldSize, gOptions->GetScatThick_um() / 2 * 1e-4 );
-     topVolume->AddNode(siliconPlane, 0, new TGeoTranslation(0, 0, 0));
+     TGeoVolume * scattererPlane = gGeoManager->MakeBox("SiliconPlane", scattererMedium, worldSize, worldSize, gOptions->GetScatThick_um() / 2 * 1e-4 );
+     topVolume->AddNode(scattererPlane, 0, new TGeoTranslation(0, 0, 0));
 
      gGeoManager->CloseGeometry();
 
@@ -106,7 +113,8 @@ GFTestResult Run()
      //        Prepare and return the result
      // ============================================
 
-     GFTestResult result("GENFIT");
+     // GFTestResult result("GENFIT");
+     GFTestResult result;
      result.Passed = (state.getPos().Z() == plane->getO().Z());
      result.XYCov  = state.get6DCov()(0,1);
      result.XStddev = sqrt( state.get6DCov()(0,0) );
