@@ -11,6 +11,8 @@
 #include "TLegend.h"
 #include "TF1.h"
 
+#include "TObjString.h"
+
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
@@ -74,10 +76,13 @@ struct GFTestScanResults
 };
 
 
+
+std::ostringstream gLog;
+
 std::vector<double> gEnergies_GeV( {0.01, 0.02, 0.05, 0.098, 0.102, 0.15, 0.2, 0.35, 0.5, 0.7, 1, 2, 5, 10 } );
 
 // std::vector<double> gEnergies_GeV( {0.102, 0.15, 0.5, 1 } );
-// std::vector<double> gEnergies_GeV( {0.01 } );
+// std::vector<double> gEnergies_GeV( {0.5, 1.0 } );
 
 
 
@@ -90,6 +95,10 @@ GFTestScanResults ScanWithThisOptions()
            scan.Energy.push_back( energy_GeV );
            scan.GeantResults.emplace_back( CallInNewProcess( GFTest::GeantSim::Run ) );
            scan.GenfitResults.emplace_back( CallInNewProcess( GFTest::GenfitExt::Run ) );
+
+           gLog << "\n===============================================================\n";
+           gLog << gOptions->GetParticle() << " " << gOptions->GetMaterial() << " " << std::to_string( gOptions->GetThickness_um() ) << "\n";
+           GFTestResult::Compare( {scan.GeantResults.back(), scan.GenfitResults.back()}, gLog );
        }
     return scan;
 }
@@ -161,39 +170,6 @@ int main(int argc, char ** argv)
 
     gOptions->Parse( 0, nullptr ); // Set default options
     gOptions->SetGeantNEvents( 1e6 );
-    
-//    gOptions->SetParticle("e-");
-//    gOptions->SetMaterial("Si");
-//    gOptions->SetThickness_um( 50 );
-//    scans.emplace_back( ScanWithThisOptions() );
-//    scans.back().Name =  "e-_50um_Si";
-//    scans.back().Title = "e^{-} 50um Si";
-//    scans.back().MarkerColor = 47;
-//
-//    gOptions->SetParticle("e-");
-//    gOptions->SetMaterial("Si");
-//    gOptions->SetThickness_um( 300 );
-//    scans.emplace_back( ScanWithThisOptions() );
-//    scans.back().Name =  "e-_300um_Si";
-//    scans.back().Title = "e^{-} 300um Si";
-//    scans.back().MarkerColor = kRed;
-//
-//
-//    gOptions->SetParticle("e-");
-//    gOptions->SetMaterial("Pb");
-//    gOptions->SetThickness_um( 1000 );
-//    scans.emplace_back( ScanWithThisOptions() );
-//    scans.back().Name =  "e-_1000um_Pb";
-//    scans.back().Title = "e^{-} 1000um Pb";
-//    scans.back().MarkerColor = kBlue;
-//
-//    gOptions->SetParticle("e-");
-//    gOptions->SetMaterial("Be");
-//    gOptions->SetThickness_um( 5000 );
-//    scans.emplace_back( ScanWithThisOptions() );
-//    scans.back().Name =  "e-_5000um_Be";
-//    scans.back().Title = "e^{-} 5000um Be";
-//    scans.back().MarkerColor = kMagenta;
 
     gOptions->SetParticle("pi+");
     gOptions->SetMaterial("Si");
@@ -227,13 +203,13 @@ int main(int argc, char ** argv)
     scans.back().Title = "mu^{-} 1000um Pb";
     scans.back().MarkerColor = 36;
 
-    gOptions->SetParticle("proton");
-    gOptions->SetMaterial("Be");
-    gOptions->SetThickness_um( 5000 );
-    scans.emplace_back( ScanWithThisOptions() );
-    scans.back().Name =  "p+_5000um_Be";
-    scans.back().Title = "p^{+} 5000um Be";
-    scans.back().MarkerColor = kMagenta;
+//    gOptions->SetParticle("proton");
+//    gOptions->SetMaterial("Be");
+//    gOptions->SetThickness_um( 5000 );
+//    scans.emplace_back( ScanWithThisOptions() );
+//    scans.back().Name =  "p+_5000um_Be";
+//    scans.back().Title = "p^{+} 5000um Be";
+//    scans.back().MarkerColor = kMagenta;
 
     gOptions->SetParticle("pi-");
     gOptions->SetMaterial("Be");
@@ -259,19 +235,57 @@ int main(int argc, char ** argv)
     scans.back().Title = "p^{+} 1000um Ta";
     scans.back().MarkerColor = kBlack;
 
+
+    gOptions->SetParticle("e-");
+    gOptions->SetMaterial("Si");
+    gOptions->SetThickness_um( 50 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "e-_50um_Si";
+    scans.back().Title = "e^{-} 50um Si";
+    scans.back().MarkerColor = 3;
+
+    gOptions->SetParticle("e-");
+    gOptions->SetMaterial("Si");
+    gOptions->SetThickness_um( 300 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "e-_300um_Si";
+    scans.back().Title = "e^{-} 300um Si";
+    scans.back().MarkerColor = 9;
+
+
+    gOptions->SetParticle("e-");
+    gOptions->SetMaterial("Pb");
+    gOptions->SetThickness_um( 1000 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "e-_1000um_Pb";
+    scans.back().Title = "e^{-} 1000um Pb";
+    scans.back().MarkerColor = 8;
+
+//    gOptions->SetParticle("e-");
+//    gOptions->SetMaterial("Be");
+//    gOptions->SetThickness_um( 5000 );
+//    scans.emplace_back( ScanWithThisOptions() );
+//    scans.back().Name =  "e-_5000um_Be";
+//    scans.back().Title = "e^{-} 5000um Be";
+//    scans.back().MarkerColor = 29;
+
+
+
     std::cout << "Number of scans: " << scans.size() << std::endl;
 
     TFile fileOut("scan.root", "recreate");
 
     PlotRelDiff( scans, &GFTestResult::ELossMean,   "Mean energy loss" )->Write();
-    PlotRelDiff( scans, &GFTestResult::ELossGausMean,   "Gaus Mean energy loss" )->Write();
+    // PlotRelDiff( scans, &GFTestResult::ELossGausMean,   "Gaus Mean energy loss" )->Write();
     PlotRelDiff( scans, &GFTestResult::ELossStddev, "Standard deviation of energy loss" )->Write();
-    PlotRelDiff( scans, &GFTestResult::ELossGausSigma, "Gaus Sigma of energy loss" )->Write();
-    PlotRelDiff( scans, &GFTestResult::TxStddev,    "Standard deviation of direction tangent X" )->Write();
-    PlotRelDiff( scans, &GFTestResult::TxGausSigma,    "GausSigma of direction tangent X" )->Write();
-    PlotRelDiff( scans, &GFTestResult::TyStddev,    "Standard deviation of direction tangent Y" )->Write();
-    PlotRelDiff( scans, &GFTestResult::TyGausSigma,    "GausSigma of direction tangent Y" )->Write();
+    // PlotRelDiff( scans, &GFTestResult::ELossGausSigma, "Gaus Sigma of energy loss" )->Write();
+    // PlotRelDiff( scans, &GFTestResult::TxStddev,    "Standard deviation of direction tangent X" )->Write();
+    // PlotRelDiff( scans, &GFTestResult::TxGausSigma,    "GausSigma of direction tangent X" )->Write();
+    // PlotRelDiff( scans, &GFTestResult::TyStddev,    "Standard deviation of direction tangent Y" )->Write();
+    // PlotRelDiff( scans, &GFTestResult::TyGausSigma,    "GausSigma of direction tangent Y" )->Write();
 
+    TObjString log( gLog.str().c_str() );
+    log.Write("log");
 
     fileOut.Close();
 }

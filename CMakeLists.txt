@@ -25,11 +25,13 @@ include_directories( $ENV{GENFIT_INSTALL}/include )
 find_package(Geant4 REQUIRED)
 include(${Geant4_USE_FILE})
 
-file(GLOB SRCS ${PROJECT_SOURCE_DIR}/*.cpp)
+include_directories( ${PROJECT_SOURCE_DIR}/TestEm18/include )
+file(GLOB SRCS ${PROJECT_SOURCE_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/TestEm18/src/*.cc)
 
 add_executable(gftest gftest.cxx ${SRCS} )
 target_link_libraries(gftest ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}  ${Boost_LIBRARIES} genfit2 Geom EG rt ) # rt not needed here if not liking with ProcessWrapper 
 
 add_executable(gfscan gfscan.cxx ${SRCS} )
 target_link_libraries(gfscan ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}  ${Boost_LIBRARIES} genfit2 Geom EG rt )
+
 

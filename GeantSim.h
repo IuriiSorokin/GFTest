@@ -11,8 +11,6 @@ namespace GeantSim
 {
     GFTestResult Run();
 
-    Double_t GetMedian(const TH1F * h, Double_t nParticles );
-
 } /* namespace GFTest::GeantSim */
 
 } /* namespace GFTest */
