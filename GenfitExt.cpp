@@ -56,53 +56,38 @@ GFTestResult Run()
      mediumParameters[8]=0.;//not defined
      mediumParameters[9]=0.;//not defined
 
-     G4Material * g4scattererMaterial = G4NistManager::Instance()->FindOrBuildMaterial( Form("G4_%s", gOptions->GetScatMat().c_str())  );
-     TGeoMixture * scattererMaterial = new TGeoMixture("ScattererMaterial", g4scattererMaterial->GetNumberOfElements(), g4scattererMaterial->GetDensity() / ( CLHEP::g / CLHEP::cm3) );
-     for( size_t iElement = 0; iElement < g4scattererMaterial->GetNumberOfElements(); ++iElement ) {
-         scattererMaterial->AddElement( g4scattererMaterial->GetElement(iElement)->GetAtomicMassAmu(), g4scattererMaterial->GetElement(iElement)->GetZ(), g4scattererMaterial->GetFractionVector()[iElement] );
+     G4Material * g4material = G4NistManager::Instance()->FindOrBuildMaterial( Form("G4_%s", gOptions->GetMaterial().c_str())  );
+     TGeoMixture * gfMaterial = new TGeoMixture("Material", g4material->GetNumberOfElements(), g4material->GetDensity() / ( CLHEP::g / CLHEP::cm3) );
+     for( size_t iElement = 0; iElement < g4material->GetNumberOfElements(); ++iElement ) {
+         gfMaterial->AddElement( g4material->GetElement(iElement)->GetAtomicMassAmu(), g4material->GetElement(iElement)->GetZ(), g4material->GetFractionVector()[iElement] );
      }
-     scattererMaterial->SetRadLen( 7777 ); // this should force ROOT to recalculate the radiation and interaction length. 7777 is an arbitrary positive number.
-     std::cout << "Scatterer material radiation length = " << scattererMaterial->GetRadLen() << std::endl;
-     TGeoMedium * scattererMedium = new TGeoMedium( "scattererMedium", gGeoManager->GetListOfMedia()->GetSize(), scattererMaterial, mediumParameters);
+     gfMaterial->SetRadLen( 7777 ); // this should force ROOT to recalculate the radiation and interaction length. 7777 is an arbitrary positive number.
+     std::cout << "Scatterer material radiation length = " << gfMaterial->GetRadLen() << std::endl;
+     TGeoMedium * medium = new TGeoMedium( "scattererMedium", gGeoManager->GetListOfMedia()->GetSize(), gfMaterial, mediumParameters);
 
-     TGeoElement * vacuumElement = gGeoManager->GetElementTable()->FindElement("Vacuum");
-     assert(vacuumElement);
-     Double_t vacuumDensity_g_cm3 = 1e-27;
-     TGeoMaterial * vacuumMaterial = new TGeoMaterial("vacuumMaterial", vacuumElement, vacuumDensity_g_cm3);
-     vacuumMaterial->SetRadLen( 7777 ); // this should force ROOT to recalculate the radiation and interaction length. 7777 is an arbitrary positive number.
-     std::cout << "Vacuum radiation length = " << vacuumMaterial->GetRadLen() << std::endl;
-     TGeoMedium * vacuumMedium = new TGeoMedium("vacuumMedium", gGeoManager->GetListOfMedia()->GetSize(), vacuumMaterial, mediumParameters);
-
-     // ===== Physical volumes =====
-     double worldSize = 5 * ( std::abs( gOptions->GetDetZ_cm() ) + std::abs( gOptions->GetPartZ_cm() ) ) ;
-     TGeoVolume * topVolume = gGeoManager->MakeBox("TopVolume", vacuumMedium, worldSize, worldSize, worldSize);
+     double halfThickness = gOptions->GetThickness_um() * 1e-4 / 2;
+     double halfSize = 100 * halfThickness;
+     TGeoVolume * topVolume = gGeoManager->MakeBox("TopVolume", medium, halfSize, halfSize, halfThickness );
      gGeoManager->SetTopVolume(topVolume);
-
-     TGeoVolume * scattererPlane = gGeoManager->MakeBox("SiliconPlane", scattererMedium, worldSize, worldSize, gOptions->GetScatThick_um() / 2 * 1e-4 );
-     topVolume->AddNode(scattererPlane, 0, new TGeoTranslation(0, 0, 0));
-
      gGeoManager->CloseGeometry();
-
-     // ===== Magnetic field =====
 
      genfit::FieldManager::getInstance()->init( new genfit::ConstField(0,0,0) );
 
-     // ===== Detector plane =====
-
-     genfit::SharedPlanePtr plane( new genfit::DetPlane( TVector3(0,0,gOptions->GetDetZ_cm()), TVector3(1,0,0), TVector3(0,1,0) ) );
+     genfit::SharedPlanePtr detectingPlane( new genfit::DetPlane( TVector3(0,0,halfThickness), TVector3(1,0,0), TVector3(0,1,0) ) );
 
      // ============================================
      //               Extrapolation
      // ============================================
 
-     const Int_t kElectronPdgCode = TDatabasePDG::Instance()->GetParticle( gOptions->GetPartType().c_str() )->PdgCode();
+     const Int_t kElectronPdgCode = TDatabasePDG::Instance()->GetParticle( gOptions->GetParticle().c_str() )->PdgCode();
 
      genfit::RKTrackRep trackRep(kElectronPdgCode);
      genfit::MeasuredStateOnPlane state( & trackRep );
-     state.setPosMom( TVector3(gOptions->GetPartX_cm(),gOptions->GetPartY_cm(),gOptions->GetPartZ_cm()), TVector3(gOptions->GetPartPx_GeVc(),gOptions->GetPartPy_GeVc(),gOptions->GetPartPz_GeVc()) );
+     double initMom = sqrt( gOptions->GetEnergy_GeV() * ( gOptions->GetEnergy_GeV() + 2 * state.getMass() ) );
+     state.setPosMom( TVector3(0,0,-halfThickness), TVector3( 0,0, initMom ) );
 
      try {
-         state.extrapolateToPlane( plane, false, true );
+         state.extrapolateToPlane( detectingPlane, false, true );
      }
      catch (genfit::Exception & e) {
          std::cout << "Extrapolation failed. Genfit exception:" << std::endl;
@@ -115,12 +100,24 @@ GFTestResult Run()
 
      // GFTestResult result("GENFIT");
      GFTestResult result;
-     result.Passed = (state.getPos().Z() == plane->getO().Z());
-     result.XYCov  = state.get6DCov()(0,1);
-     result.XStddev = sqrt( state.get6DCov()(0,0) );
-     result.YStddev = sqrt( state.get6DCov()(1,1) );
-     result.PLossMean  = ( gOptions->GetPartPMag_GeVc() - state.getMom().Mag() ) * 1e6;
-     result.PLossStddev = sqrt(state.getMomVar()) * 1e6;
+
+     double mom = state.getMom().Mag();
+     double mass = state.getMass();
+     double EKinInit = gOptions->GetEnergy_GeV();
+     double ETot = hypot(mom,mass);
+     double EKin = ETot - mass;
+     double ELoss = EKinInit - EKin;
+     double ELossError = mom / ETot * sqrt( state.getMomVar() );
+
+     result.Passed = (state.getPos().Z() == detectingPlane->getO().Z());
+     result.ELossMean =     ELoss * 1e6;
+     result.ELossGausMean = ELoss * 1e6;
+     result.ELossStddev =    ELossError * 1e6;
+     result.ELossGausSigma = ELossError * 1e6;
+     result.TxStddev    = sqrt( state.getCov()(1,1) );
+     result.TxGausSigma = sqrt( state.getCov()(1,1) );
+     result.TyStddev    = sqrt( state.getCov()(2,2) );
+     result.TyGausSigma = sqrt( state.getCov()(2,2) );
 
      return result;
 }

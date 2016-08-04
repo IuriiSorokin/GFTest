@@ -2,20 +2,20 @@
 #define GEANTDETECTORCONSTRUCTION_H
 
 #include "G4VUserDetectorConstruction.hh"
-#include "GeantTrackerSD.h"
+#include "GeantSensitiveDetector.h"
 
 namespace GFTest {
 
 class GeantDetectorConstruction : public G4VUserDetectorConstruction
 {
 public:
-    GeantDetectorConstruction() : fDetPlaneSD(nullptr) {};
+    GeantDetectorConstruction() : fSensitiveDetector(nullptr) {};
     virtual ~GeantDetectorConstruction() {};
     virtual G4VPhysicalVolume* Construct();
-    GeantTrackerSD * GetDetPlaneSD() const { return fDetPlaneSD; }
+    GeantSensitiveDetector * GetSensitiveDetector() const { return fSensitiveDetector; }
 
 private:
-    GeantTrackerSD * fDetPlaneSD;
+    GeantSensitiveDetector * fSensitiveDetector;
 
 };
 

@@ -14,7 +14,10 @@
 #include <memory>
 #include "G4VModularPhysicsList.hh"
 #include "G4EmStandardPhysics_option4.hh"
-
+//#include "FTFP_BERT.hh"
+#include "G4PhysListFactory.hh"
+#include "G4SystemOfUnits.hh"
+// #include "G4StepLimiterPhysics.hh"
 
 namespace GFTest {
 
@@ -25,98 +28,70 @@ GFTestResult Run()
     TH1::StatOverflows( kTRUE ); // Use the counts falling into underflow/overflow to calculate the mean
 
     std::unique_ptr<G4RunManager> runManager( new G4RunManager );
-    // runManager->SetUserInitialization( G4PhysListFactory().GetReferencePhysList( gOptions->GetGeantPhys() ) );
-    G4VModularPhysicsList * physicsList = new G4VModularPhysicsList();
-    physicsList->RegisterPhysics( new G4EmStandardPhysics_option4() );
-    runManager->SetUserInitialization( physicsList );
+
+    // runManager->SetUserInitialization( G4PhysListFactory().GetReferencePhysList( "FTFP_BERT_EMZ" ) );
+
+    runManager->SetUserInitialization( G4PhysListFactory().GetReferencePhysList( "QGSP_BERT_EMZ" ) );
+
+//    G4VModularPhysicsList * physicsList = new G4VModularPhysicsList();
+//    physicsList->RegisterPhysics( new G4EmStandardPhysics_option4() );
+//    // physicsList->RegisterPhysics( new G4StepLimiterPhysics() );
+//    runManager->SetUserInitialization( physicsList );
+
     runManager->SetUserInitialization( new GeantDetectorConstruction() );
     runManager->SetUserAction( new GeantPrimaryGeneratorAction() );
     // G4EventManager::GetEventManager()->SetVerboseLevel(1);
     runManager->Initialize();
-    runManager->BeamOn( gOptions->GetGeantNPart() );
-    // ===== Prepare the result =====
+    runManager->BeamOn( gOptions->GetGeantNEvents() );
 
-    // GFTestResult result( std::string("GEANT(") + gOptions->GetGeantPhys() + ")" );
+    // ===== Prepare the result =====
     GFTestResult result;
 
-    const GeantTrackerSD * det = dynamic_cast<const GeantDetectorConstruction * >( runManager->GetUserDetectorConstruction())->GetDetPlaneSD();
-    std::cout << "Entries outside = " << det->GetMomLoss_keV()->GetEntries() << std::endl;
+    const GeantSensitiveDetector * det = dynamic_cast<const GeantDetectorConstruction * >( runManager->GetUserDetectorConstruction())->GetSensitiveDetector();
 
-    std::unique_ptr<TH2F> pos_cm( dynamic_cast<TH2F*>(det->GetPos_cm()->Clone("pos_cm")) );
-    std::unique_ptr<TH1F> posX_cm( dynamic_cast<TH1F*>(det->GetPosX_cm()->Clone("posX_cm")) ); // Need to clone it to be able to fit
-    std::unique_ptr<TH1F> posY_cm( dynamic_cast<TH1F*>(det->GetPosY_cm()->Clone("posY_cm")) );
-    std::unique_ptr<TH1F> momLoss_keV( dynamic_cast<TH1F*>(det->GetMomLoss_keV()->Clone("momLoss_keV")) );
+    TH1F * hELoss_keV = dynamic_cast<TH1F*>( det->GetHistELoss_keV()->Clone("hELoss_keV") );
+    TH1F * hTx    = dynamic_cast<TH1F*>( det->GetHistTx()->Clone("hTx") );
+    TH1F * hTy    = dynamic_cast<TH1F*>( det->GetHistTy()->Clone("hTy") );
 
+    result.Passed      = hTx->GetEntries()  / gOptions->GetGeantNEvents();
+    result.ELossMean   = hELoss_keV->GetMean();
+    result.ELossStddev = hELoss_keV->GetRMS();
+    result.TxStddev    = hTx->GetRMS();
+    result.TyStddev    = hTy->GetRMS();
 
-    pos_cm->SetDirectory(0); // take the ownership away from ROOT
-    posX_cm->SetDirectory(0);
-    posY_cm->SetDirectory(0);
-    momLoss_keV->SetDirectory(0);
+    hELoss_keV->Fit("gaus", "q");
+    result.ELossGausMean  = dynamic_cast<TF1*>(hELoss_keV->GetListOfFunctions()->FindObject("gaus"))->GetParameter("Mean");
+    result.ELossGausSigma = dynamic_cast<TF1*>(hELoss_keV->GetListOfFunctions()->FindObject("gaus"))->GetParameter("Sigma");
 
-    result.XStddev = posX_cm->GetRMS();
-    result.YStddev = posY_cm->GetRMS();
-    result.XYCov   = pos_cm->GetCovariance();
+    hTx->Fit("gaus", "q");
+    result.TxGausSigma = dynamic_cast<TF1*>(hTx->GetListOfFunctions()->FindObject("gaus"))->GetParameter("Sigma");
 
-    posX_cm->Fit("gaus");
-    posY_cm->Fit("gaus");
-
-
-    if( const TF1* fitFunc = dynamic_cast<const TF1*>(posX_cm->GetListOfFunctions()->FindObject("gaus")) ) {
-        result.XSigmaFit  = fitFunc->GetParameter("Sigma");
-    }
-
-    if( const TF1* fitFunc = dynamic_cast<const TF1*>(posY_cm->GetListOfFunctions()->FindObject("gaus")) ) {
-        result.YSigmaFit  = fitFunc->GetParameter("Sigma");
-    }
-
-    result.PLossMean   = momLoss_keV->GetMean();
-    result.PLossStddev = momLoss_keV->GetRMS();
-    result.PLossMP     = momLoss_keV->GetBinCenter( momLoss_keV->GetMaximumBin() );
-    result.PLossMedi   = GetMedian( momLoss_keV.get(), gOptions->GetGeantNPart() );
-    result.Passed      = momLoss_keV->GetEntries() / gOptions->GetGeantNPart();
+    hTy->Fit("gaus", "q");
+    result.TxGausSigma = dynamic_cast<TF1*>(hTy->GetListOfFunctions()->FindObject("gaus"))->GetParameter("Sigma");
 
     // ===== Store =====
 
     TFile outFile( gOptions->GetGeantOutFile().c_str(), "recreate");
-    pos_cm->Write();
-    posX_cm->Write();
-    posY_cm->Write();
-    momLoss_keV->Write();
+    hELoss_keV->Write();
+    hTx->Write();
+    hTy->Write();
     outFile.Close();
 
     // ===== Draw =====
 
     if( GFTest::gOptions->GetGeantDraw() ) {
-        new TCanvas();
-        pos_cm->SetDirectory(gROOT); // give the ownership back to ROOT
-        pos_cm->Draw("colz");
-        pos_cm.release();
-        new TCanvas();
-        posX_cm->SetDirectory(gROOT);
-        posX_cm->Draw();
-        posX_cm.release();
-        new TCanvas();
-        posY_cm->SetDirectory(gROOT);
-        posY_cm->Draw();
-        posY_cm.release();
-        new TCanvas();
-        momLoss_keV->SetDirectory(gROOT);
-        momLoss_keV->Draw();
-        momLoss_keV.release();
+        new TCanvas("ELoss");
+        hELoss_keV->Clone("Eloss")->Draw();
+        new TCanvas("Tx");
+        hTx->Clone("Tx")->Draw();
+        new TCanvas("Ty");
+        hTy->Clone("Ty")->Draw();
     }
 
     return result;
 }
 
 
-
-Double_t GetMedian( const TH1F* h, Double_t nParticles )
-{
-    std::unique_ptr<TH1F> hc(  dynamic_cast<TH1F*>(h->GetCumulative(true, "cumulative")) );
-    Long64_t medianBin = TMath::BinarySearch<Float_t>( hc->GetNbinsX(), hc->GetArray() , 0.5 * nParticles );
-    std::cout << "MEDIAN BIN is " << medianBin << std::endl;
-    return hc->GetBinCenter( medianBin );
-}
 
 } /* namespace GFTest::GeantSim */
 

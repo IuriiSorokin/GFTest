@@ -21,52 +21,43 @@ void GFTestResult::StreamOptional(const boost::optional<T> value, boost::format 
 
 void GFTestResult::Compare( std::vector<GFTestResult> results, std::ostream & os )
 {
-    boost::format f("%|16g|");
+    boost::format fmt("%|16g|");
 
-//    os << "                   ";
-//    for( const GFTestResult & result : results ) os << f % result.Name;
-//    os << "\n";
-
-    os << "Passed             ";
-    for( const GFTestResult & result : results ) StreamOptional( result.Passed, f, os );
+    os << "Passed               ";
+    for( const GFTestResult & result : results ) StreamOptional( result.Passed, fmt, os );
     os << "\n";
 
-    os << "XStddev     / cm   ";
-    for( const GFTestResult & result : results ) StreamOptional( result.XStddev, f, os );
+    os << "ELossMean     / keV  ";
+    for( const GFTestResult & result : results ) StreamOptional( result.ELossMean, fmt, os );
     os << "\n";
 
-    os << "XSigmaFit   / cm   ";
-    for( const GFTestResult & result : results ) StreamOptional( result.XSigmaFit, f, os );
+    os << "ELossGausMean / keV  ";
+    for( const GFTestResult & result : results ) StreamOptional( result.ELossGausMean, fmt, os );
     os << "\n";
 
-    os << "YStddev     / cm   ";
-    for( const GFTestResult & result : results ) StreamOptional( result.YStddev, f, os );
+    os << "ELossStddev / keV    ";
+    for( const GFTestResult & result : results ) StreamOptional( result.ELossStddev, fmt, os );
     os << "\n";
 
-    os << "YSigmaFit   / cm   ";
-    for( const GFTestResult & result : results ) StreamOptional( result.YSigmaFit, f, os );
+    os << "ELossGausSigma / keV ";
+    for( const GFTestResult & result : results ) StreamOptional( result.ELossGausSigma, fmt, os );
     os << "\n";
 
-    os << "XYCov       / cm^2 ";
-    for( const GFTestResult & result : results ) StreamOptional( result.XYCov, f, os );
+    os << "TxStddev             ";
+    for( const GFTestResult & result : results ) StreamOptional( result.TxStddev, fmt, os );
     os << "\n";
 
-    os << "PLossMean   / keV  ";
-    for( const GFTestResult & result : results ) StreamOptional( result.PLossMean, f, os );
+    os << "TxGausSigma          ";
+    for( const GFTestResult & result : results ) StreamOptional( result.TxGausSigma, fmt, os );
     os << "\n";
 
-    os << "PLossMP     / keV  ";
-    for( const GFTestResult & result : results ) StreamOptional( result.PLossMP, f, os );
+    os << "TyStddev             ";
+    for( const GFTestResult & result : results ) StreamOptional( result.TyStddev, fmt, os );
     os << "\n";
 
-    os << "PLossMedi   / keV  ";
-    for( const GFTestResult & result : results ) StreamOptional( result.PLossMedi, f, os );
+    os << "TyGausSigma          ";
+    for( const GFTestResult & result : results ) StreamOptional( result.TyGausSigma, fmt, os );
     os << "\n";
-
-    os << "PLossStddev / keV  ";
-    for( const GFTestResult & result : results ) StreamOptional( result.PLossStddev, f, os );
-    os << "\n";
-
 }
 
 
