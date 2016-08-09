@@ -18,8 +18,9 @@ int main(int argc,char ** argv)
         rootApp.reset( new TApplication("rootApp", & rootArgc, & rootArgv ) );
     }
 
-    GFTestResult geantResult = GFTest::GeantSim::Run();
     GFTestResult genfitResult = GFTest::GenfitExt::Run();
+    gOptions->SetTailCutoff( genfitResult.TailCutoff.get() );
+    GFTestResult geantResult = GFTest::GeantSim::Run();
 
     std::cout << "================================================================\n";
     GFTestResult::Compare( { geantResult, genfitResult } );

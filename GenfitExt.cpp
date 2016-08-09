@@ -118,7 +118,7 @@ GFTestResult Run()
      result.TxGausSigma = sqrt( state.getCov()(1,1) );
      result.TyStddev    = sqrt( state.getCov()(2,2) );
      result.TyGausSigma = sqrt( state.getCov()(2,2) );
-
+     result.TailCutoff  = genfit::MaterialEffects::getInstance()->tailCutoff_; // Replace the MaterialEffects.h and .cc in GENFIT with the modified once!
      return result;
 }
 

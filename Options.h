@@ -36,6 +36,9 @@ public:
     std::string GetGeantOutFile() const { return fGeantOutFile; }
     void        SetGeantOutFile( std::string geantOutFile ) { fGeantOutFile = geantOutFile; }
 
+    double      GetTailCutoff() const { return fTailCutoff; }
+    void        SetTailCutoff( double tailCutoff ) { fTailCutoff = tailCutoff; }
+
 private:
     void Declare();
     boost::program_options::options_description fOptionsDescription;
@@ -48,6 +51,7 @@ private:
     int         fGeantNEvents;
     bool        fGeantDraw;
     std::string fGeantOutFile;
+    double      fTailCutoff;
 };
 
 extern std::unique_ptr<Options> gOptions;

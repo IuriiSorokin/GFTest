@@ -58,6 +58,10 @@ void GFTestResult::Compare( std::vector<GFTestResult> results, std::ostream & os
     os << "TyGausSigma          ";
     for( const GFTestResult & result : results ) StreamOptional( result.TyGausSigma, fmt, os );
     os << "\n";
+
+    os << "TailCutoff           ";
+    for( const GFTestResult & result : results ) StreamOptional( result.TailCutoff, fmt, os );
+    os << "\n";
 }
 
 

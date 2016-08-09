@@ -79,8 +79,7 @@ struct GFTestScanResults
 
 std::ostringstream gLog;
 
-std::vector<double> gEnergies_GeV( {0.01, 0.02, 0.05, 0.098, 0.102, 0.15, 0.2, 0.35, 0.5, 0.7, 1, 2, 5, 10 } );
-
+std::vector<double> gEnergies_GeV;
 // std::vector<double> gEnergies_GeV( {0.102, 0.15, 0.5, 1 } );
 // std::vector<double> gEnergies_GeV( {0.5, 1.0 } );
 
@@ -93,11 +92,12 @@ GFTestScanResults ScanWithThisOptions()
            gOptions->SetEnergy_GeV( energy_GeV );
            gOptions->SetGeantOutFile( Form("geant_out/GeantHist_%s_%lf_%s_%lf.root", gOptions->GetParticle().c_str(), gOptions->GetThickness_um(), gOptions->GetMaterial().c_str(), energy_GeV ) );
            scan.Energy.push_back( energy_GeV );
-           scan.GeantResults.emplace_back( CallInNewProcess( GFTest::GeantSim::Run ) );
            scan.GenfitResults.emplace_back( CallInNewProcess( GFTest::GenfitExt::Run ) );
+           gOptions->SetTailCutoff( scan.GenfitResults.back().TailCutoff.get() );
+           scan.GeantResults.emplace_back( CallInNewProcess( GFTest::GeantSim::Run ) );
 
            gLog << "\n===============================================================\n";
-           gLog << gOptions->GetParticle() << " " << gOptions->GetMaterial() << " " << std::to_string( gOptions->GetThickness_um() ) << "\n";
+           gLog << gOptions->GetParticle() << " " << energy_GeV << " " << gOptions->GetMaterial() << " " << std::to_string( gOptions->GetThickness_um() ) << "um \n";
            GFTestResult::Compare( {scan.GeantResults.back(), scan.GenfitResults.back()}, gLog );
        }
     return scan;
@@ -126,7 +126,7 @@ TCanvas * PlotRelDiff( const std::vector<GFTestScanResults> & scans,  boost::opt
     scale->SetPoint(0, gEnergies_GeV.front(), -1);
     scale->SetPoint(1, gEnergies_GeV.back(),   1);
     scale->Draw("ap");
-    scale->GetXaxis()->SetTitle("Initial p / GeV/c");
+    scale->GetXaxis()->SetTitle("Initial kinetic energy / GeV");
     scale->GetYaxis()->SetTitle( "(GENFIT-GEANT)/GEANT" );
     scale->GetYaxis()->SetTitleOffset(1.3);
 
@@ -170,71 +170,16 @@ int main(int argc, char ** argv)
 
     gOptions->Parse( 0, nullptr ); // Set default options
     gOptions->SetGeantNEvents( 1e6 );
+    // gOptions->SetGeantNEvents( 1e5 );
 
-    gOptions->SetParticle("pi+");
-    gOptions->SetMaterial("Si");
-    gOptions->SetThickness_um( 50 );
-    scans.emplace_back( ScanWithThisOptions() );
-    scans.back().Name =  "pi+_50um_Si";
-    scans.back().Title = "#pi^{+} 50um Si";
-    scans.back().MarkerColor = 47;
-    
-    gOptions->SetParticle("pi-");
-    gOptions->SetMaterial("Si");
-    gOptions->SetThickness_um( 300 );
-    scans.emplace_back( ScanWithThisOptions() );
-    scans.back().Name =  "pi-_300um_Si";
-    scans.back().Title = "#pi^{-} 300um Si";
-    scans.back().MarkerColor = kRed;
-
-    gOptions->SetParticle("pi-");
-    gOptions->SetMaterial("Pb");
-    gOptions->SetThickness_um( 1000 );
-    scans.emplace_back( ScanWithThisOptions() );
-    scans.back().Name =  "pi-_1000um_Pb";
-    scans.back().Title = "pi^{-} 1000um Pb";
-    scans.back().MarkerColor = kBlue;
-
-    gOptions->SetParticle("mu-");
-    gOptions->SetMaterial("Pb");
-    gOptions->SetThickness_um( 1000 );
-    scans.emplace_back( ScanWithThisOptions() );
-    scans.back().Name =  "mu-_1000um_Pb";
-    scans.back().Title = "mu^{-} 1000um Pb";
-    scans.back().MarkerColor = 36;
-
-//    gOptions->SetParticle("proton");
-//    gOptions->SetMaterial("Be");
-//    gOptions->SetThickness_um( 5000 );
-//    scans.emplace_back( ScanWithThisOptions() );
-//    scans.back().Name =  "p+_5000um_Be";
-//    scans.back().Title = "p^{+} 5000um Be";
-//    scans.back().MarkerColor = kMagenta;
-
-    gOptions->SetParticle("pi-");
-    gOptions->SetMaterial("Be");
-    gOptions->SetThickness_um( 500 );
-    scans.emplace_back( ScanWithThisOptions() );
-    scans.back().Name =  "pi-_500um_Be";
-    scans.back().Title = "#pi^{-} 500um Be";
-    scans.back().MarkerColor = 32;
-
-    gOptions->SetParticle("pi-");
-    gOptions->SetMaterial("C");
-    gOptions->SetThickness_um( 500 );
-    scans.emplace_back( ScanWithThisOptions() );
-    scans.back().Name =  "pi-_500um_C";
-    scans.back().Title = "#pi^{-} 500um C";
-    scans.back().MarkerColor = kCyan;
-
-    gOptions->SetParticle("proton");
-    gOptions->SetMaterial("Ta");
-    gOptions->SetThickness_um( 1000 );
-    scans.emplace_back( ScanWithThisOptions() );
-    scans.back().Name =  "p+_1000um_Ta";
-    scans.back().Title = "p^{+} 1000um Ta";
-    scans.back().MarkerColor = kBlack;
-
+    gEnergies_GeV = { 0.01, 0.02, 0.05, 0.07, 0.085, 0.097, 0.103, 0.11, 0.12, 0.13, 0.14, 0.15, 0.17, 0.2, 0.35, 0.5, 0.7, 1, 2, 5, 10 };
+    // gEnergies_GeV = { 1 };
+    std::vector<Color_t> colors = { kRed,   kBlue,   kGreen,   kMagenta,   kCyan,
+                                    kRed-6, kBlue-7, kGreen-5, kMagenta-9, kCyan+4,
+                                    kRed+2, kBlue+3, kGreen-5, kMagenta+3, kCyan+3,
+                                    kRed-1, kBlue-1, kGreen-5, kMagenta-1, kCyan-5,
+                                    kRed-8, kBlue-8, kGreen-5, kMagenta           };
+    size_t iColor = 0;
 
     gOptions->SetParticle("e-");
     gOptions->SetMaterial("Si");
@@ -242,33 +187,146 @@ int main(int argc, char ** argv)
     scans.emplace_back( ScanWithThisOptions() );
     scans.back().Name =  "e-_50um_Si";
     scans.back().Title = "e^{-} 50um Si";
-    scans.back().MarkerColor = 3;
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenCircle;
 
-    gOptions->SetParticle("e-");
+    gOptions->SetParticle("e+");
     gOptions->SetMaterial("Si");
     gOptions->SetThickness_um( 300 );
     scans.emplace_back( ScanWithThisOptions() );
-    scans.back().Name =  "e-_300um_Si";
-    scans.back().Title = "e^{-} 300um Si";
-    scans.back().MarkerColor = 9;
-
+    scans.back().Name =  "e+_300um_Si";
+    scans.back().Title = "e^{+} 300um Si";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenCircle;
 
     gOptions->SetParticle("e-");
+    gOptions->SetMaterial("Al");
+    gOptions->SetThickness_um( 20 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "e-_20um_Al";
+    scans.back().Title = "e^{-} 20um Al";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenCircle;
+
+    gOptions->SetParticle("e-");
+    gOptions->SetMaterial("C");
+    gOptions->SetThickness_um( 100 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "e-_100um_C";
+    scans.back().Title = "e^{-} 100um C";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenCircle;
+
+    gOptions->SetParticle("e+");
     gOptions->SetMaterial("Pb");
     gOptions->SetThickness_um( 1000 );
     scans.emplace_back( ScanWithThisOptions() );
     scans.back().Name =  "e-_1000um_Pb";
     scans.back().Title = "e^{-} 1000um Pb";
-    scans.back().MarkerColor = 8;
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenCircle;
 
-//    gOptions->SetParticle("e-");
+//    gOptions->SetParticle("e+");
 //    gOptions->SetMaterial("Be");
 //    gOptions->SetThickness_um( 5000 );
 //    scans.emplace_back( ScanWithThisOptions() );
 //    scans.back().Name =  "e-_5000um_Be";
 //    scans.back().Title = "e^{-} 5000um Be";
 //    scans.back().MarkerColor = 29;
+//    scans.back().MarkerStyle = kOpenCircle;
 
+    gOptions->SetParticle("e-");
+    gOptions->SetMaterial("He");
+    gOptions->SetThickness_um( 100000 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "e-_10cm_He";
+    scans.back().Title = "e^{-} 10cm He";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenCircle;
+
+    gEnergies_GeV = { 0.05, 0.07, 0.085, 0.097, 0.103, 0.12, 0.15, 0.2, 0.35, 0.5, 0.7, 1, 1.5, 2, 3, 5, 6.5, 8, 10 };
+    // gEnergies_GeV = { 1 };
+
+    gOptions->SetParticle("pi+");
+    gOptions->SetMaterial("Be");
+    gOptions->SetThickness_um( 50 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "pi+_50um_Be";
+    scans.back().Title = "#pi^{+} 50um Be";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenDiamond;
+
+    gOptions->SetParticle("pi-");
+    gOptions->SetMaterial("Ar");
+    gOptions->SetThickness_um( 10000 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "pi-_1cm_Ar";
+    scans.back().Title = "#pi^{-} 1cm Ar";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenDiamond;
+
+    gOptions->SetParticle("pi+");
+    gOptions->SetMaterial("Si");
+    gOptions->SetThickness_um( 300 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "pi-_300um_Si";
+    scans.back().Title = "#pi^{-} 300um Si";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenDiamond;
+
+    gOptions->SetParticle("pi-");
+    gOptions->SetMaterial("Pb");
+    gOptions->SetThickness_um( 1000 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "pi-_1000um_Pb";
+    scans.back().Title = "#pi^{-} 1000um Pb";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenDiamond;
+
+    gOptions->SetParticle("mu-");
+    gOptions->SetMaterial("Fe");
+    gOptions->SetThickness_um( 500 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "mu-_500um_Fe";
+    scans.back().Title = "#mu^{-} 500um Fe";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenCross;
+
+    gOptions->SetParticle("proton");
+    gOptions->SetMaterial("Ar");
+    gOptions->SetThickness_um( 10000 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "proton_1cm_Ar";
+    scans.back().Title = "proton 1cm Ar";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenSquare;
+
+    gOptions->SetParticle("proton");
+    gOptions->SetMaterial("C");
+    gOptions->SetThickness_um( 500 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "proton_500um_C";
+    scans.back().Title = "proton 500um C";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenSquare;
+
+    gOptions->SetParticle("proton");
+    gOptions->SetMaterial("Ti");
+    gOptions->SetThickness_um( 500 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "proton_500um_Ti";
+    scans.back().Title = "proton 500um Ti";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenSquare;
+
+    gOptions->SetParticle("proton");
+    gOptions->SetMaterial("Pb");
+    gOptions->SetThickness_um( 1000 );
+    scans.emplace_back( ScanWithThisOptions() );
+    scans.back().Name =  "proton_1000um_Pb";
+    scans.back().Title = "proton 1000um Pb";
+    scans.back().MarkerColor = colors.at( iColor++ % colors.size() );
+    scans.back().MarkerStyle = kOpenSquare;
 
 
     std::cout << "Number of scans: " << scans.size() << std::endl;

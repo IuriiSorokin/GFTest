@@ -128,7 +128,7 @@ void PhysListEmStandard::ConstructProcess()
       hIoni->SetStepFunction(0.1, 20*um);
       ph->RegisterProcess(hIoni,                   particle);
       ph->RegisterProcess(new G4hBremsstrahlung(), particle);
-      ph->RegisterProcess(new G4hPairProduction(), particle);            
+      ph->RegisterProcess(new G4hPairProduction(), particle);
      
     } else if( particleName == "alpha" || 
                particleName == "He3"    ) {

@@ -37,6 +37,7 @@
 #include "HistoManager.hh"
 
 #include "G4Event.hh"
+#include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -63,12 +64,22 @@ void EventAction::BeginOfEventAction(const G4Event*)
 void EventAction::EndOfEventAction(const G4Event*)
 {
  fRunAction->AddEnergyDeposit(fEnergyDeposit);
- fRunAction->AccountTotalLoss( fTotalLoss );
  
+ // if( fTotalLoss <  5.33779e+07 * eV +  150 * keV ) {
+     fRunAction->AccountTotalLoss( fTotalLoss );
+ // } else {
+ //     std::cout << "skipping event " << std::endl;
+ // }
+
  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
  analysisManager->FillH1(1, fEnergyDeposit);
  analysisManager->FillH1(2, fEnergySecondary);
  analysisManager->FillH1(3, fEnergyDeposit+fEnergySecondary);
+
+// std::cout << "Event\n";
+// std::cout << "Deposit " << fEnergyDeposit / keV << std::endl;
+// std::cout << "Second. " << fEnergySecondary / keV << std::endl;
+// std::cout << "Total   " << fTotalLoss / keV << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

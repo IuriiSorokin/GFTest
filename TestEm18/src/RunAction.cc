@@ -68,6 +68,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
   fEnergyDeposit = 0.;
   fTotalLoss = 0.;
   fTotalLoss2 = 0.;
+  fTotalLossVect.reserve( G4RunManager::GetRunManager()->GetNumberOfEventsToBeProcessed() );
   
   fNbCharged = fNbNeutral = 0;
   fEnergyCharged = fEnergyNeutral = 0.;  

@@ -26,6 +26,7 @@ struct GFTestResult
     boost::optional<double> TxGausSigma;
     boost::optional<double> TyStddev;
     boost::optional<double> TyGausSigma;
+    boost::optional<double> TailCutoff;
 
     static void Compare( std::vector<GFTestResult> results, std::ostream & os = std::cout  );
 

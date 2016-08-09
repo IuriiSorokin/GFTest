@@ -37,6 +37,7 @@
 #include "G4UserRunAction.hh"
 
 #include "globals.hh"
+#include <vector>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -102,15 +103,18 @@ class RunAction : public G4UserRunAction
 
     G4double fTotalLoss;
     G4double fTotalLoss2;
+    std::vector<G4double> fTotalLossVect;
 
   public:
     void     AccountTotalLoss( G4double totalLoss ) {
         fTotalLoss  += totalLoss;
         fTotalLoss2 += totalLoss * totalLoss;
+        fTotalLossVect.push_back(totalLoss);
     }
 
     G4double GetTotalLoss() const  { return fTotalLoss; }
     G4double GetTotalLoss2() const { return fTotalLoss2; }
+    std::vector<G4double> & TotalLossVect() {return fTotalLossVect;}
 
 };
 
